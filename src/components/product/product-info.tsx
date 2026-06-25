@@ -134,29 +134,65 @@ export function ProductInfo({ product, variations }: ProductInfoProps) {
         <div className="mt-6 space-y-4">
           {product.attributes
             .filter((attr) => attr.variation)
-            .map((attribute) => (
-              <div key={attribute.id}>
-                <label className="mb-2 block text-sm font-medium">
-                  {attribute.name}
-                  {selectedAttributes[attribute.name] && (
-                    <span className="ml-2 font-normal text-gray-500">
-                      : {selectedAttributes[attribute.name]}
-                    </span>
-                  )}
-                </label>
-
-                <div className="flex flex-wrap gap-2">
-                  {attribute.options.map((option) => {
-                    const isSelected = selectedAttributes[attribute.name] === option;
-                    const isColor = attribute.name.toLowerCase() === 'color';
-
-                    // Check if this option is available in any variation
-                    const isAvailable = variations.some((v) => {
+            .map((attribute) => {
+              // Get only options that actually exist in variations
+              const availableOptions = Array.from(
+                new Set(
+                  variations
+                    .map((v) => {
                       const attrMatch = v.attributes.find((a) => a.name === attribute.name);
-                      return (!attrMatch?.option || attrMatch.option === option) && v.stock_status === 'instock';
-                    });
+                      return attrMatch?.option;
+                    })
+                    .filter((option): option is string => !!option)
+                )
+              );
 
-                    if (isColor) {
+              // Don't render if no available options
+              if (availableOptions.length === 0) return null;
+
+              return (
+                <div key={attribute.id}>
+                  <label className="mb-2 block text-sm font-medium">
+                    {attribute.name}
+                    {selectedAttributes[attribute.name] && (
+                      <span className="ml-2 font-normal text-gray-500">
+                        : {selectedAttributes[attribute.name]}
+                      </span>
+                    )}
+                  </label>
+
+                  <div className="flex flex-wrap gap-2">
+                    {availableOptions.map((option) => {
+                      const isSelected = selectedAttributes[attribute.name] === option;
+                      const isColor = attribute.name.toLowerCase() === 'color';
+
+                      // Check if this option is available in any variation with stock
+                      const isAvailable = variations.some((v) => {
+                        const attrMatch = v.attributes.find((a) => a.name === attribute.name);
+                        return (!attrMatch?.option || attrMatch.option === option) && v.stock_status === 'instock';
+                      });
+
+                      if (isColor) {
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() =>
+                              setSelectedAttributes((prev) => ({ ...prev, [attribute.name]: option }))
+                            }
+                            disabled={!isAvailable}
+                            className={cn(
+                              'h-8 w-8 rounded-full border-2 transition-all',
+                              isSelected ? 'border-black ring-2 ring-black ring-offset-2' : 'border-gray-300',
+                              !isAvailable && 'opacity-30 cursor-not-allowed'
+                            )}
+                            style={{ backgroundColor: option.toLowerCase() }}
+                            title={option}
+                            aria-label={option}
+                          />
+                        );
+                      }
+
                       return (
                         <button
                           key={option}
@@ -166,40 +202,21 @@ export function ProductInfo({ product, variations }: ProductInfoProps) {
                           }
                           disabled={!isAvailable}
                           className={cn(
-                            'h-8 w-8 rounded-full border-2 transition-all',
-                            isSelected ? 'border-black ring-2 ring-black ring-offset-2' : 'border-gray-300',
-                            !isAvailable && 'opacity-30 cursor-not-allowed'
+                            'min-w-[3rem] border px-4 py-2 text-sm transition-colors',
+                            isSelected
+                              ? 'border-black bg-black text-white'
+                              : 'border-gray-300 hover:border-black',
+                            !isAvailable && 'opacity-30 cursor-not-allowed line-through'
                           )}
-                          style={{ backgroundColor: option.toLowerCase() }}
-                          title={option}
-                          aria-label={option}
-                        />
+                        >
+                          {option}
+                        </button>
                       );
-                    }
-
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() =>
-                          setSelectedAttributes((prev) => ({ ...prev, [attribute.name]: option }))
-                        }
-                        disabled={!isAvailable}
-                        className={cn(
-                          'min-w-[3rem] border px-4 py-2 text-sm transition-colors',
-                          isSelected
-                            ? 'border-black bg-black text-white'
-                            : 'border-gray-300 hover:border-black',
-                          !isAvailable && 'opacity-30 cursor-not-allowed line-through'
-                        )}
-                      >
-                        {option}
-                      </button>
-                    );
-                  })}
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       )}
 
@@ -329,7 +346,7 @@ export function ProductInfo({ product, variations }: ProductInfoProps) {
             </svg>
           </summary>
           <div className="pb-4 text-sm text-gray-600">
-            <p>Free shipping on orders over $100.</p>
+            <p>Free shipping on orders over $1.</p>
             <p className="mt-2">Free returns within 30 days.</p>
           </div>
         </details>
