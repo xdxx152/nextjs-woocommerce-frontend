@@ -78,7 +78,7 @@ export function HeroSlider() {
             sizes="100vw"
           />
           {/* Overlay - darker gradient for better text visibility */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/50 via-black/30 to-black/10" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </motion.div>
       </AnimatePresence>
