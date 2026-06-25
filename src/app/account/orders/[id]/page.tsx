@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useIsAuthenticated, useAuthToken } from '@/stores/auth-store';
 import { formatPrice } from '@/lib/utils';
+import { useMounted } from '@/lib/hooks';
 import type { WCOrder } from '@/types/woocommerce';
 
 const statusColors: Record<string, string> = {
@@ -41,23 +42,20 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const [order, setOrder] = useState<WCOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isAuthenticated) {
+    if (!isAuthenticated) {
       router.push(`/account/login?redirect=/account/orders/${id}`);
     }
-  }, [mounted, isAuthenticated, router, id]);
+  }, [isAuthenticated, router, id]);
 
   useEffect(() => {
-    if (mounted && isAuthenticated && token) {
+    if (isAuthenticated && token) {
       fetchOrder();
     }
-  }, [mounted, isAuthenticated, token, id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, token, id]);
 
   const fetchOrder = async () => {
     try {

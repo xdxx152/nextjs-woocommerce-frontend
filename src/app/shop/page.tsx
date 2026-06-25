@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { wooCommerce } from '@/lib/woocommerce';
 import { ProductGrid } from '@/components/product/product-grid';
 import { ProductGridSkeleton } from '@/components/ui/skeleton';
@@ -87,21 +88,21 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
               <h3 className="text-sm font-medium uppercase tracking-wider">Categories</h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a
+                  <Link
                     href="/shop"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     All Products
-                  </a>
+                  </Link>
                 </li>
                 {categories.map((category) => (
                   <li key={category.id}>
-                    <a
+                    <Link
                       href={`/shop/${category.slug}`}
                       className="text-sm text-gray-600 hover:text-black"
                     >
                       {category.name} ({category.count})
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -112,36 +113,36 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
               <h3 className="text-sm font-medium uppercase tracking-wider">Sort By</h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a
+                  <Link
                     href="/shop?orderby=date&order=desc"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     Newest
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/shop?orderby=price&order=asc"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     Price: Low to High
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/shop?orderby=price&order=desc"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     Price: High to Low
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/shop?orderby=popularity"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     Popularity
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -151,20 +152,20 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
               <h3 className="text-sm font-medium uppercase tracking-wider">Filter</h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a
+                  <Link
                     href="/shop?on_sale=true"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     On Sale
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
+                  <Link
                     href="/shop?featured=true"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     Featured
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

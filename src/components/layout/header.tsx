@@ -8,6 +8,7 @@ import { useCartStore, useCartItemCount } from '@/stores/cart-store';
 import { useUIStore } from '@/stores/ui-store';
 import { useIsAuthenticated, useUser } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
+import { useMounted } from '@/lib/hooks';
 import { Search } from './search';
 import { CurrencySelector } from '@/components/ui/currency-selector';
 
@@ -27,17 +28,13 @@ export function Header() {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [categories, setCategories] = useState<NavItem[]>([]);
   const { openCart } = useCartStore();
   const itemCount = useCartItemCount();
   const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore();
   const isAuthenticated = useIsAuthenticated();
   const user = useUser();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Fetch categories dynamically
   useEffect(() => {

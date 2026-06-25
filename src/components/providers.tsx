@@ -1,21 +1,17 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import { CurrencyProvider } from './providers/currency-provider';
+import { useMounted } from '@/lib/hooks';
 
 interface ProvidersProps {
   children: ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
-  // Prevent hydration mismatch for Zustand stores that use localStorage
-  const [isHydrated, setIsHydrated] = useState(false);
+  const mounted = useMounted();
 
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  if (!isHydrated) {
+  if (!mounted) {
     // Return children without client-side store data to prevent hydration mismatch
     return <>{children}</>;
   }

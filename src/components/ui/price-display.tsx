@@ -2,7 +2,6 @@
 
 import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice as baseFormatPrice } from '@/lib/utils';
-import { getCurrencyLocale } from '@/lib/currency';
 
 interface PriceDisplayProps {
   price: number | string;
@@ -14,20 +13,12 @@ interface PriceDisplayProps {
   showCurrency?: boolean;
 }
 
-const sizeClasses = {
-  sm: 'text-sm',
-  md: 'text-base',
-  lg: 'text-xl font-medium',
-};
-
 export function PriceDisplay({
   price,
   regularPrice,
   salePrice,
   isOnSale = false,
   className,
-  size = 'md',
-  showCurrency = true,
 }: PriceDisplayProps) {
   const currency = useCurrencyStore((s) => s.currency);
 

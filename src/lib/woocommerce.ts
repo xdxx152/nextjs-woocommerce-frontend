@@ -194,7 +194,7 @@ export const orders = {
   /**
    * Update an order
    */
-  update: (id: number, data: Partial<CreateOrderData>, params?: Record<string, string | number | boolean | undefined>) =>
+  update: (id: number, data: Partial<CreateOrderData> & { status?: string; transaction_id?: string }, params?: Record<string, string | number | boolean | undefined>) =>
     wooCommerceAPI<WCOrder>(`/orders/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

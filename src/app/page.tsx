@@ -4,22 +4,16 @@ import { wooCommerce } from '@/lib/woocommerce';
 import { ProductGrid } from '@/components/product/product-grid';
 import { HeroSlider } from '@/components/home/hero-slider';
 import { Button } from '@/components/ui/button';
-import type { WCCategory } from '@/types/woocommerce';
-
-// Define which category slugs to show on homepage
-const FEATURED_CATEGORY_SLUGS = ['women', 'men', 'accessories'];
 
 export default async function HomePage() {
   // Fetch featured/new products and categories
   let featuredProducts: Awaited<ReturnType<typeof wooCommerce.products.list>> = [];
   let newProducts: Awaited<ReturnType<typeof wooCommerce.products.list>> = [];
-  let categories: WCCategory[] = [];
 
   try {
-    [featuredProducts, newProducts, categories] = await Promise.all([
+    [featuredProducts, newProducts] = await Promise.all([
       wooCommerce.products.list({ featured: true, per_page: 4 }),
       wooCommerce.products.list({ orderby: 'date', order: 'desc', per_page: 8 }),
-      wooCommerce.categories.list({ per_page: 100, hide_empty: false }),
     ]);
   } catch (error) {
     console.error('Failed to fetch data:', error);

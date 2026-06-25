@@ -13,6 +13,7 @@ import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PaymentMethodSelector, type PaymentMethod } from '@/components/checkout/payment-method-selector';
 
 const checkoutSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -37,9 +38,20 @@ const checkoutSchema = z.object({
   orderNotes: z.string().optional(),
   createAccount: z.boolean().optional(),
   password: z.string().optional(),
+  paymentMethod: z.enum(['stripe', 'paypal', 'bacs', 'cod']),
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
+
+function getPaymentMethodTitle(method: PaymentMethod): string {
+  const titles: Record<PaymentMethod, string> = {
+    stripe: 'Credit Card (Stripe)',
+    paypal: 'PayPal',
+    bacs: 'Bank Transfer',
+    cod: 'Cash on Delivery',
+  };
+  return titles[method];
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -52,6 +64,8 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<number | null>(null);
+  const [paymentStep, setPaymentStep] = useState<'form' | 'paypal-button'>('form');
 
   const {
     register,
@@ -66,6 +80,7 @@ export default function CheckoutPage() {
       createAccount: false,
       country: 'US',
       shippingCountry: 'US',
+      paymentMethod: 'stripe',
     },
   });
 
@@ -74,6 +89,13 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'cancelled') {
+      setError('Payment was cancelled. Your order has been saved, you can retry.');
+    }
   }, []);
 
   useEffect(() => {
@@ -116,6 +138,18 @@ export default function CheckoutPage() {
     );
   }
 
+  const getSubmitButtonText = () => {
+    if (isSubmitting) return 'Processing...';
+    switch (watch('paymentMethod')) {
+      case 'stripe':
+        return `Pay ${formatPrice(total, currency)}`;
+      case 'paypal':
+        return 'Continue to PayPal';
+      default:
+        return 'Place Order';
+    }
+  };
+
   const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
     setError(null);
@@ -155,11 +189,10 @@ export default function CheckoutPage() {
         quantity: item.quantity,
       }));
 
-      const response = await fetch('/api/orders', {
+      // 1. Create WC order (all payment methods need this)
+      const orderResponse = await fetch('/api/orders', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           billing: billingAddress,
           shipping: shippingAddress,
@@ -168,21 +201,63 @@ export default function CheckoutPage() {
           create_account: data.createAccount,
           password: data.password,
           currency: currency,
+          payment_method: data.paymentMethod,
+          payment_method_title: getPaymentMethodTitle(data.paymentMethod),
+          set_paid: false,
         }),
       });
 
-      const result = await response.json();
+      const orderData = await orderResponse.json();
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to create order');
+      if (!orderResponse.ok) {
+        throw new Error(orderData.message || 'Failed to create order');
       }
 
+      const orderId: number = orderData.id;
+
+      // 2. Clear cart immediately after WC order creation
       clearCart();
-      router.push(`/order-confirmation/${result.id}`);
+
+      // 3. Branch by payment method
+      switch (data.paymentMethod) {
+        case 'stripe': {
+          // Create Stripe Checkout Session and redirect
+          const stripeResponse = await fetch('/api/checkout/stripe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId }),
+          });
+
+          if (!stripeResponse.ok) {
+            const err = await stripeResponse.json();
+            throw new Error(err.error || 'Failed to create Stripe session');
+          }
+
+          const { url } = await stripeResponse.json();
+          // Redirect to Stripe hosted payment page
+          window.location.href = url;
+          break;
+        }
+
+        case 'paypal':
+          // Show PayPal button area
+          setPendingOrderId(orderId);
+          setPaymentStep('paypal-button');
+          break;
+
+        case 'bacs':
+        case 'cod':
+          // Redirect directly to order confirmation
+          router.push(`/order-confirmation/${orderId}`);
+          break;
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
-      setIsSubmitting(false);
+      // Don't reset isSubmitting if we're about to redirect to Stripe
+      if (watch('paymentMethod') !== 'stripe') {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -394,6 +469,20 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {/* PayPal Button Placeholder */}
+          {paymentStep === 'paypal-button' && pendingOrderId && (
+            <div className="mt-6 p-4 border rounded-lg">
+              <p className="text-sm text-gray-600 mb-4">You will be redirected to PayPal to complete your payment.</p>
+              {/* PayPal button will be rendered here in Phase 3 */}
+              <button
+                onClick={() => setPaymentStep('form')}
+                className="text-sm text-gray-500 hover:underline"
+              >
+                ← Back to checkout
+              </button>
+            </div>
+          )}
+
           {/* Submit Button - Mobile */}
           <div className="mt-8 lg:hidden">
             <Button
@@ -402,7 +491,7 @@ export default function CheckoutPage() {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Processing...' : `Pay ${formatPrice(total, currency)}`}
+              {getSubmitButtonText()}
             </Button>
           </div>
         </div>
@@ -474,6 +563,15 @@ export default function CheckoutPage() {
               </div>
             </div>
 
+            {/* Payment Method */}
+            <div className="mt-6">
+              <PaymentMethodSelector
+                value={watch('paymentMethod')}
+                onChange={(method) => setValue('paymentMethod', method)}
+                disabled={isSubmitting}
+              />
+            </div>
+
             {/* Submit Button - Desktop */}
             <div className="mt-6 hidden lg:block">
               <Button
@@ -482,7 +580,7 @@ export default function CheckoutPage() {
                 size="lg"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Processing...' : 'Place Order'}
+                {getSubmitButtonText()}
               </Button>
             </div>
 

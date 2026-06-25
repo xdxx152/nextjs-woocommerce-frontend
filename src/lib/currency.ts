@@ -1,4 +1,4 @@
-import type { WCProduct, WCProductVariation, WCMultiCurrencyPrices } from '@/types/woocommerce';
+import type { WCProduct, WCProductVariation } from '@/types/woocommerce';
 
 // ============================================
 // Supported currencies configuration
@@ -143,7 +143,7 @@ export function resolveProductPrice(
         price: targetPrice.price!,
         regularPrice: hasRegPrice ? targetPrice.regular_price! : targetPrice.price!,
         salePrice: hasSalePrice ? targetPrice.sale_price! : '',
-        onSale,
+        onSale: !!onSale,
         currency,
         currencyConfig,
       };
@@ -200,7 +200,7 @@ export function resolveVariationPrice(
         price: targetPrice.price!,
         regularPrice: hasRegPrice ? targetPrice.regular_price! : targetPrice.price!,
         salePrice: hasSalePrice ? targetPrice.sale_price! : '',
-        onSale,
+        onSale: !!onSale,
         currency,
         currencyConfig,
       };

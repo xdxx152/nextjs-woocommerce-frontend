@@ -2,11 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import type { WCProduct, WCProductVariation } from '@/types/woocommerce';
 import { useCartStore } from '@/stores/cart-store';
 import { useCurrencyStore } from '@/stores/currency-store';
-import { formatPrice, getStockStatusLabel, getStockStatusColor, stripHtml } from '@/lib/utils';
+import { formatPrice, getStockStatusLabel, getStockStatusColor } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { resolveProductPrice, resolveVariationPrice } from '@/lib/currency';

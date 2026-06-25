@@ -3,13 +3,18 @@ import Link from 'next/link';
 import { wooCommerce } from '@/lib/woocommerce';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { OrderStatusBanner } from '@/components/checkout/order-status-banner';
+import { StripePollerWrapper } from '@/components/checkout/stripe-poller-wrapper';
+import type { SupportedCurrency } from '@/lib/currency';
 
 interface OrderConfirmationPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ payment?: string; status?: string; session_id?: string }>;
 }
 
-export default async function OrderConfirmationPage({ params }: OrderConfirmationPageProps) {
+export default async function OrderConfirmationPage({ params, searchParams }: OrderConfirmationPageProps) {
   const { id } = await params;
+  const { payment } = await searchParams;
   const orderId = parseInt(id, 10);
 
   if (isNaN(orderId)) {
@@ -23,8 +28,27 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
     notFound();
   }
 
+  const isPaid = !!order.date_paid || order.status === 'processing' || order.status === 'completed';
+  const isPending = order.status === 'pending';
+  const isStripePayment = payment === 'stripe';
+  const orderCurrency = (order.currency || 'USD') as SupportedCurrency;
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-16 lg:px-8">
+      {/* Order Status Banner */}
+      <OrderStatusBanner
+        status={order.status}
+        isPaid={isPaid}
+        paymentMethod={order.payment_method}
+      />
+
+      {/* Stripe Status Poller */}
+      {isPending && isStripePayment && (
+        <div className="mt-4">
+          <StripePollerWrapper orderId={order.id} />
+        </div>
+      )}
+
       <div className="text-center">
         {/* Success Icon */}
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -80,7 +104,7 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
                   <p className="font-medium">{item.name}</p>
                   <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                 </div>
-                <p className="font-medium">{formatPrice(parseFloat(item.total))}</p>
+                <p className="font-medium">{formatPrice(parseFloat(item.total), orderCurrency)}</p>
               </div>
             ))}
           </div>
@@ -93,25 +117,26 @@ export default async function OrderConfirmationPage({ params }: OrderConfirmatio
               <span className="text-gray-500">Subtotal</span>
               <span>
                 {formatPrice(
-                  order.line_items.reduce((acc, item) => acc + parseFloat(item.total), 0)
+                  order.line_items.reduce((acc, item) => acc + parseFloat(item.total), 0),
+                  orderCurrency
                 )}
               </span>
             </div>
             {parseFloat(order.shipping_total) > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Shipping</span>
-                <span>{formatPrice(parseFloat(order.shipping_total))}</span>
+                <span>{formatPrice(parseFloat(order.shipping_total), orderCurrency)}</span>
               </div>
             )}
             {parseFloat(order.total_tax) > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Tax</span>
-                <span>{formatPrice(parseFloat(order.total_tax))}</span>
+                <span>{formatPrice(parseFloat(order.total_tax), orderCurrency)}</span>
               </div>
             )}
             <div className="flex justify-between border-t pt-2 text-lg font-medium">
               <span>Total</span>
-              <span>{formatPrice(parseFloat(order.total))}</span>
+              <span>{formatPrice(parseFloat(order.total), orderCurrency)}</span>
             </div>
           </div>
         </div>

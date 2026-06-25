@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -254,12 +255,12 @@ export default function ContactPage() {
                   <p className="mt-2 text-gray-600">
                     在联系客服之前，您可以先查看我们的常见问题页面，也许能找到您需要的答案。
                   </p>
-                  <a
+                  <Link
                     href="/faq"
                     className="mt-4 inline-block text-sm font-medium text-black underline underline-offset-4 hover:no-underline"
                   >
                     查看 FAQ →
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

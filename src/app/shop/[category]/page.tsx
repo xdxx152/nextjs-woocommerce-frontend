@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { wooCommerce } from '@/lib/woocommerce';
 import { ProductGrid } from '@/components/product/product-grid';
@@ -88,7 +89,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       {/* Header */}
       <div className="mb-8">
         <nav className="mb-4 text-sm text-gray-500">
-          <a href="/shop" className="hover:text-black">Shop</a>
+          <Link href="/shop" className="hover:text-black">Shop</Link>
           <span className="mx-2">/</span>
           <span className="text-black">{category.name}</span>
         </nav>
@@ -108,23 +109,23 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               <h3 className="text-sm font-medium uppercase tracking-wider">Categories</h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a
+                  <Link
                     href="/shop"
                     className="text-sm text-gray-600 hover:text-black"
                   >
                     All Products
-                  </a>
+                  </Link>
                 </li>
                 {allCategories.map((cat) => (
                   <li key={cat.id}>
-                    <a
+                    <Link
                       href={`/shop/${cat.slug}`}
                       className={`text-sm hover:text-black ${
                         cat.id === category.id ? 'font-medium text-black' : 'text-gray-600'
                       }`}
                     >
                       {cat.name} ({cat.count})
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>

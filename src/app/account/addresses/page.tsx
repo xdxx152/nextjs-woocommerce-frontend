@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useIsAuthenticated, useAuthToken } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
+import { useMounted } from '@/lib/hooks';
 import { Input } from '@/components/ui/input';
 import type { WCAddress } from '@/types/woocommerce';
 
@@ -40,7 +41,7 @@ export default function AddressesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
   const billingForm = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
@@ -53,20 +54,17 @@ export default function AddressesPage() {
   });
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isAuthenticated) {
+    if (!isAuthenticated) {
       router.push('/account/login?redirect=/account/addresses');
     }
-  }, [mounted, isAuthenticated, router]);
+  }, [isAuthenticated, router]);
 
   useEffect(() => {
-    if (mounted && isAuthenticated && token) {
+    if (isAuthenticated && token) {
       fetchAddresses();
     }
-  }, [mounted, isAuthenticated, token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, token]);
 
   const fetchAddresses = async () => {
     try {

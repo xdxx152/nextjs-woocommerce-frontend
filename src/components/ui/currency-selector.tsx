@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCurrencyStore } from '@/stores/currency-store';
-import { CURRENCIES, type SupportedCurrency } from '@/lib/currency';
+import type { SupportedCurrency } from '@/lib/currency';
 import { cn } from '@/lib/utils';
 
 const currencyOptions: { code: SupportedCurrency; label: string; symbol: string }[] = [

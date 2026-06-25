@@ -14,6 +14,9 @@ interface OrderRequestBody {
   create_account?: boolean;
   password?: string;
   currency?: string; // Optional currency code (e.g., 'EUR', 'GBP')
+  payment_method?: string;        // 'cod' | 'stripe' | 'paypal' | 'bacs'
+  payment_method_title?: string;  // Display title for the payment method
+  set_paid?: boolean;             // Whether the order is paid (default: false)
 }
 
 export async function POST(request: Request) {
@@ -52,6 +55,11 @@ export async function POST(request: Request) {
       }
     }
 
+    // Determine payment method and title
+    const paymentMethod = body.payment_method || 'cod';
+    const paymentMethodTitle = body.payment_method_title || getPaymentMethodTitle(paymentMethod);
+    const setPaid = body.set_paid ?? false;
+
     // Create the order with optional currency
     const params: Record<string, string | number | boolean | undefined> = {};
     if (body.currency) {
@@ -59,9 +67,9 @@ export async function POST(request: Request) {
     }
 
     const order = await wooCommerce.orders.create({
-      payment_method: 'cod', // Cash on delivery as default
-      payment_method_title: 'Cash on Delivery',
-      set_paid: false,
+      payment_method: paymentMethod,
+      payment_method_title: paymentMethodTitle,
+      set_paid: setPaid,
       billing: body.billing,
       shipping: body.shipping,
       line_items: body.line_items,
@@ -81,4 +89,17 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : 'Failed to create order';
     return NextResponse.json({ message }, { status: 500 });
   }
+}
+
+/**
+ * Generate a human-readable payment method title from the payment method slug.
+ */
+function getPaymentMethodTitle(method: string): string {
+  const titles: Record<string, string> = {
+    cod: 'Cash on Delivery',
+    stripe: 'Credit Card (Stripe)',
+    paypal: 'PayPal',
+    bacs: 'Direct Bank Transfer',
+  };
+  return titles[method] || method;
 }

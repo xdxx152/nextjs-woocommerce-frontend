@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore, useIsAuthenticated, useUser } from '@/stores/auth-store';
 import { Button } from '@/components/ui/button';
+import { useMounted } from '@/lib/hooks';
 
 const accountLinks = [
   {
@@ -45,11 +46,7 @@ export default function AccountPage() {
   const isAuthenticated = useIsAuthenticated();
   const user = useUser();
   const { logout } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   useEffect(() => {
     if (mounted && !isAuthenticated) {
