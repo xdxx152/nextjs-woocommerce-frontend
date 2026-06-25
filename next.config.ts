@@ -18,12 +18,12 @@ const nextConfig: NextConfig = {
       {
         // Your WordPress CMS domain
         protocol: 'https',
-        hostname: 'cms.msrbuilds.com',
+        hostname: 'novafabric.shop',
       },
       {
         // Wildcard for msrbuilds subdomains
         protocol: 'https',
-        hostname: '**.msrbuilds.com',
+        hostname: '**.novafabric.shop',
       },
       {
         // ZipWP staging domains

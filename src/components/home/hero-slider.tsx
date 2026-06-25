@@ -11,11 +11,11 @@ const slides = [
     id: 1,
     image: '/images/hero/hero-1.jpg',
     title: 'New Collection',
-    subtitle: 'Spring/Summer 2025',
+    subtitle: 'Spring/Summer 2026',
     description: 'Discover the latest trends in contemporary fashion',
     cta: 'Shop Now',
     href: '/shop',
-    align: 'left' as const,
+    align: 'right' as const,
   },
   {
     id: 2,

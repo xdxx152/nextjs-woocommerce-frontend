@@ -190,11 +190,6 @@ export async function Footer() {
               ) : (
                 <>
                   <li>
-                    <Link href="/customer-service" className="text-sm text-gray-500 hover:text-black">
-                      Customer Service
-                    </Link>
-                  </li>
-                  <li>
                     <Link href="/size-guide" className="text-sm text-gray-500 hover:text-black">
                       Size Guide
                     </Link>

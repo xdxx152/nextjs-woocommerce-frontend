@@ -26,9 +26,10 @@ export default async function HomePage() {
   }
 
   // Filter and order categories based on FEATURED_CATEGORY_SLUGS
-  const featuredCategories = FEATURED_CATEGORY_SLUGS
-    .map(slug => categories.find(cat => cat.slug === slug))
-    .filter((cat): cat is WCCategory => cat !== undefined);
+  // 替换硬编码的 Slug
+  const allCategories = await wooCommerce.categories.list();
+  const featuredCategories = allCategories.filter(cat => cat.count > 0); // 显示所有有商品的分类
+
 
   return (
     <div className="animate-fadeIn">
@@ -147,7 +148,7 @@ export default async function HomePage() {
               </svg>
               <h3 className="mt-4 font-heading font-medium">Free Shipping</h3>
               <p className="mt-2 text-sm text-gray-500">
-                On all orders over $100
+                All goods are free of shipping costs
               </p>
             </div>
             <div className="text-center">
