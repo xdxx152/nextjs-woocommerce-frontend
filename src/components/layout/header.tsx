@@ -18,7 +18,6 @@ interface NavItem {
 
 // Static navigation items (non-category)
 const staticNavigation: NavItem[] = [
-  { name: 'New offers', href: '/shop/new-in' },
   { name: 'Products', href: '/shop' },
   { name: 'About', href: '/about' },
   { name: 'Contact', href: '/contact' },
