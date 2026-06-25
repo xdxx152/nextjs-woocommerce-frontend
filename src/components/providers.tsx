@@ -2,6 +2,8 @@
 
 import { ReactNode } from 'react';
 import { CurrencyProvider } from './providers/currency-provider';
+import { PayPalProvider } from './providers/paypal-provider';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { useMounted } from '@/lib/hooks';
 
 interface ProvidersProps {
@@ -10,6 +12,7 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   const mounted = useMounted();
+  const currency = useCurrencyStore((s) => s.currency);
 
   if (!mounted) {
     // Return children without client-side store data to prevent hydration mismatch
@@ -19,7 +22,9 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <>
       <CurrencyProvider />
-      {children}
+      <PayPalProvider key={currency} currency={currency}>
+        {children}
+      </PayPalProvider>
     </>
   );
 }
