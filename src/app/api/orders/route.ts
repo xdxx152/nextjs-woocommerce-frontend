@@ -13,6 +13,7 @@ interface OrderRequestBody {
   customer_note?: string;
   create_account?: boolean;
   password?: string;
+  currency?: string; // Optional currency code (e.g., 'EUR', 'GBP')
 }
 
 export async function POST(request: Request) {
@@ -51,7 +52,12 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create the order
+    // Create the order with optional currency
+    const params: Record<string, string | number | boolean | undefined> = {};
+    if (body.currency) {
+      params.currency = body.currency;
+    }
+
     const order = await wooCommerce.orders.create({
       payment_method: 'cod', // Cash on delivery as default
       payment_method_title: 'Cash on Delivery',
@@ -61,7 +67,7 @@ export async function POST(request: Request) {
       line_items: body.line_items,
       customer_id: customerId || undefined,
       customer_note: body.customer_note,
-    });
+    }, params);
 
     return NextResponse.json({
       id: order.id,

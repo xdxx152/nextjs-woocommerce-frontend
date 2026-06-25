@@ -170,10 +170,11 @@ export const orders = {
   /**
    * Create a new order
    */
-  create: (data: CreateOrderData) =>
+  create: (data: CreateOrderData, params?: Record<string, string | number | boolean | undefined>) =>
     wooCommerceAPI<WCOrder>('/orders', {
       method: 'POST',
       body: JSON.stringify(data),
+      params,
     }),
 
   /**
@@ -193,10 +194,11 @@ export const orders = {
   /**
    * Update an order
    */
-  update: (id: number, data: Partial<CreateOrderData>) =>
+  update: (id: number, data: Partial<CreateOrderData>, params?: Record<string, string | number | boolean | undefined>) =>
     wooCommerceAPI<WCOrder>(`/orders/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+      params,
     }),
 };
 

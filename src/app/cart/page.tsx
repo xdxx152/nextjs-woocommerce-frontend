@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore, useCartItems, useCartTotal } from '@/stores/cart-store';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -10,6 +11,7 @@ export default function CartPage() {
   const items = useCartItems();
   const total = useCartTotal();
   const { removeItem, updateQuantity, clearCart } = useCartStore();
+  const currency = useCurrencyStore((s) => s.currency);
 
   if (items.length === 0) {
     return (
@@ -136,10 +138,10 @@ export default function CartPage() {
 
                     {/* Price */}
                     <div className="text-right">
-                      <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
-                      {item.quantity > 1 && (
-                        <p className="text-sm text-gray-500">{formatPrice(item.price)} each</p>
-                      )}
+                      <p className="font-medium">{formatPrice(item.price * item.quantity, currency)}</p>
+                        {item.quantity > 1 && (
+                          <p className="text-sm text-gray-500">{formatPrice(item.price, currency)} each</p>
+                        )}
                     </div>
                   </div>
                 </div>
@@ -167,7 +169,7 @@ export default function CartPage() {
             <div className="mt-6 space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(total, currency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Shipping</span>
@@ -182,7 +184,7 @@ export default function CartPage() {
             <div className="mt-6 border-t pt-6">
               <div className="flex justify-between text-base font-medium">
                 <span>Total</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(total, currency)}</span>
               </div>
             </div>
 

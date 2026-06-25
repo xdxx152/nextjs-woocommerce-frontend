@@ -4,7 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { WCProduct } from '@/types/woocommerce';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice, calculateDiscount, getProductUrl } from '@/lib/utils';
+import { resolveProductPrice } from '@/lib/currency';
 
 interface ProductCardProps {
   product: WCProduct;
@@ -14,9 +16,14 @@ interface ProductCardProps {
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   const mainImage = product.images[0];
   const hoverImage = product.images[1];
-  const hasDiscount = product.on_sale && product.regular_price && product.sale_price;
+  const currency = useCurrencyStore((s) => s.currency);
+  
+  // Resolve price based on current currency
+  const resolvedPrice = resolveProductPrice(product, currency);
+  
+  const hasDiscount = resolvedPrice.onSale && resolvedPrice.regularPrice && resolvedPrice.salePrice;
   const discountPercent = hasDiscount
-    ? calculateDiscount(product.regular_price, product.sale_price)
+    ? calculateDiscount(resolvedPrice.regularPrice, resolvedPrice.salePrice!)
     : 0;
 
   return (
@@ -69,7 +76,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
           {/* Badges */}
           <div className="absolute left-2 top-2 flex flex-col gap-1">
-            {product.on_sale && (
+            {hasDiscount && (
               <span className="bg-black px-2 py-1 text-xs font-medium text-white">
                 -{discountPercent}%
               </span>
@@ -119,18 +126,18 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
 
           {/* Price */}
           <div className="flex items-center gap-2">
-            {product.on_sale ? (
+            {hasDiscount ? (
               <>
                 <span className="text-sm font-medium text-red-600">
-                  {formatPrice(product.sale_price)}
+                  {formatPrice(resolvedPrice.salePrice!, currency)}
                 </span>
                 <span className="text-sm text-gray-400 line-through">
-                  {formatPrice(product.regular_price)}
+                  {formatPrice(resolvedPrice.regularPrice, currency)}
                 </span>
               </>
             ) : (
               <span className="text-sm font-medium">
-                {formatPrice(product.price)}
+                {formatPrice(resolvedPrice.price, currency)}
               </span>
             )}
           </div>

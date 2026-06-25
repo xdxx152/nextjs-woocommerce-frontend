@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore, useCartItems, useCartIsOpen, useCartTotal } from '@/stores/cart-store';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -12,6 +13,7 @@ export function CartDrawer() {
   const isOpen = useCartIsOpen();
   const total = useCartTotal();
   const { closeCart, removeItem, updateQuantity } = useCartStore();
+  const currency = useCurrencyStore((s) => s.currency);
 
   return (
     <AnimatePresence>
@@ -158,7 +160,7 @@ export function CartDrawer() {
 
                           {/* Price */}
                           <p className="text-sm font-medium">
-                            {formatPrice(item.price * item.quantity)}
+                            {formatPrice(item.price * item.quantity, currency)}
                           </p>
                         </div>
                       </div>
@@ -173,7 +175,7 @@ export function CartDrawer() {
               <div className="border-t px-4 py-4">
                 <div className="flex justify-between text-base font-medium">
                   <p>Subtotal</p>
-                  <p>{formatPrice(total)}</p>
+                  <p>{formatPrice(total, currency)}</p>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
                   Shipping and taxes calculated at checkout.

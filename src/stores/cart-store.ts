@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useCurrencyStore } from './currency-store';
+import { DEFAULT_CURRENCY } from '@/lib/currency';
 
 export interface CartItem {
   id: string; // Unique cart item ID (productId-variationId-attributes)
@@ -13,6 +15,7 @@ export interface CartItem {
   image: string;
   attributes?: Record<string, string>; // e.g., { Size: 'M', Color: 'Black' }
   maxQuantity?: number; // Stock limit
+  currency: string; // e.g., 'USD', 'EUR', 'GBP'
 }
 
 interface CartState {
@@ -21,7 +24,7 @@ interface CartState {
 }
 
 interface CartActions {
-  addItem: (item: Omit<CartItem, 'id'>) => void;
+  addItem: (item: Omit<CartItem, 'id' | 'currency'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -102,6 +105,7 @@ export const useCartStore = create<CartStore>()(
       // Actions
       addItem: (item) => {
         const id = generateCartItemId(item.productId, item.variationId, item.attributes);
+        const currentCurrency = useCurrencyStore.getState().currency || DEFAULT_CURRENCY;
 
         set((state) => {
           const existingItemIndex = state.items.findIndex((i) => i.id === id);
@@ -125,9 +129,9 @@ export const useCartStore = create<CartStore>()(
             };
           }
 
-          // Add new item
+          // Add new item with current currency
           return {
-            items: [...state.items, { ...item, id }],
+            items: [...state.items, { ...item, id, currency: currentCurrency }],
             isOpen: true,
           };
         });

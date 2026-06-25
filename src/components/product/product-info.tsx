@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { WCProduct, WCProductVariation } from '@/types/woocommerce';
 import { useCartStore } from '@/stores/cart-store';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice, getStockStatusLabel, getStockStatusColor, stripHtml } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { resolveProductPrice, resolveVariationPrice } from '@/lib/currency';
 
 interface ProductInfoProps {
   product: WCProduct;
@@ -21,6 +23,7 @@ export function ProductInfo({ product, variations }: ProductInfoProps) {
   const [isAdding, setIsAdding] = useState(false);
 
   const isVariable = product.type === 'variable';
+  const currency = useCurrencyStore((s) => s.currency);
 
   // Find matching variation based on selected attributes
   const selectedVariation = useMemo(() => {
@@ -35,11 +38,18 @@ export function ProductInfo({ product, variations }: ProductInfoProps) {
     );
   }, [isVariable, variations, selectedAttributes]);
 
-  // Get current price (from variation or product)
-  const currentPrice = selectedVariation?.price || product.price;
-  const currentRegularPrice = selectedVariation?.regular_price || product.regular_price;
-  const currentSalePrice = selectedVariation?.sale_price || product.sale_price;
-  const isOnSale = selectedVariation?.on_sale ?? product.on_sale;
+  // Resolve prices based on current currency
+  const resolvedPrice = useMemo(() => {
+    if (selectedVariation) {
+      return resolveVariationPrice(selectedVariation, currency);
+    }
+    return resolveProductPrice(product, currency);
+  }, [selectedVariation, product, currency]);
+
+  const currentPrice = resolvedPrice.price;
+  const currentRegularPrice = resolvedPrice.regularPrice;
+  const currentSalePrice = resolvedPrice.salePrice;
+  const isOnSale = resolvedPrice.onSale;
   const stockStatus = selectedVariation?.stock_status || product.stock_status;
   const stockQuantity = selectedVariation?.stock_quantity ?? product.stock_quantity;
 
@@ -100,15 +110,15 @@ export function ProductInfo({ product, variations }: ProductInfoProps) {
         {isOnSale && currentSalePrice ? (
           <>
             <span className="text-xl font-medium text-red-600">
-              {formatPrice(currentSalePrice)}
+              {formatPrice(currentSalePrice, currency)}
             </span>
             <span className="text-lg text-gray-400 line-through">
-              {formatPrice(currentRegularPrice)}
+              {formatPrice(currentRegularPrice, currency)}
             </span>
           </>
         ) : (
           <span className="text-xl font-medium">
-            {currentPrice ? formatPrice(currentPrice) : 'Price unavailable'}
+            {currentPrice ? formatPrice(currentPrice, currency) : 'Price unavailable'}
           </span>
         )}
       </div>

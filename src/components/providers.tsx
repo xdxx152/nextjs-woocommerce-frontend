@@ -1,6 +1,7 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
+import { CurrencyProvider } from './providers/currency-provider';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -19,5 +20,10 @@ export function Providers({ children }: ProvidersProps) {
     return <>{children}</>;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <CurrencyProvider />
+      {children}
+    </>
+  );
 }

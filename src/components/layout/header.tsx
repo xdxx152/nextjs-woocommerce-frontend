@@ -9,6 +9,7 @@ import { useUIStore } from '@/stores/ui-store';
 import { useIsAuthenticated, useUser } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
 import { Search } from './search';
+import { CurrencySelector } from '@/components/ui/currency-selector';
 
 interface NavItem {
   name: string;
@@ -94,8 +95,13 @@ export function Header() {
             Nova Frabic
           </Link>
 
-          {/* Right - Search & Cart */}
+          {/* Right - Currency, Search & Cart */}
           <div className="flex items-center gap-4">
+            {/* Currency Selector */}
+            <CurrencySelector />
+
+            <span className="hidden sm:block h-5 w-px bg-gray-300" />
+
             {/* Search Button */}
             <button
               type="button"
@@ -106,9 +112,6 @@ export function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
             </button>
-
-            {/* Divider */}
-            <span className="hidden sm:block h-5 w-px bg-gray-300" />
 
             {/* Cart Button */}
             <button

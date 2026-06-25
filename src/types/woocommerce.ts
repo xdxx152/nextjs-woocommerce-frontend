@@ -39,6 +39,14 @@ export interface WCVariationAttribute {
   option: string;
 }
 
+export interface WCCurrencyPrice {
+  regular_price: string | null;
+  sale_price: string | null;
+  price: string | null;
+}
+
+export type WCMultiCurrencyPrices = Record<string, WCCurrencyPrice>;
+
 export interface WCProductVariation {
   id: number;
   sku: string;
@@ -50,6 +58,7 @@ export interface WCProductVariation {
   stock_quantity: number | null;
   image: WCImage;
   attributes: WCVariationAttribute[];
+  multi_currency_prices?: WCMultiCurrencyPrices;
 }
 
 export interface WCProduct {
@@ -107,6 +116,7 @@ export interface WCProduct {
   menu_order: number;
   date_created: string;
   date_modified: string;
+  multi_currency_prices?: WCMultiCurrencyPrices;
 }
 
 export interface WCAddress {

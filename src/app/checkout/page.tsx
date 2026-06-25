@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useCartStore, useCartItems, useCartTotal } from '@/stores/cart-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useCurrencyStore } from '@/stores/currency-store';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +47,7 @@ export default function CheckoutPage() {
   const total = useCartTotal();
   const { clearCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
+  const currency = useCurrencyStore((s) => s.currency);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -165,6 +167,7 @@ export default function CheckoutPage() {
           customer_note: data.orderNotes || '',
           create_account: data.createAccount,
           password: data.password,
+          currency: currency,
         }),
       });
 
@@ -399,7 +402,7 @@ export default function CheckoutPage() {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Processing...' : `Pay ${formatPrice(total)}`}
+              {isSubmitting ? 'Processing...' : `Pay ${formatPrice(total, currency)}`}
             </Button>
           </div>
         </div>
@@ -443,7 +446,7 @@ export default function CheckoutPage() {
                       </span>
                     )}
                   </div>
-                  <span className="text-sm">{formatPrice(item.price * item.quantity)}</span>
+                  <span className="text-sm">{formatPrice(item.price * item.quantity, currency)}</span>
                 </div>
               ))}
             </div>
@@ -452,7 +455,7 @@ export default function CheckoutPage() {
             <div className="mt-6 space-y-3 border-t pt-6">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(total, currency)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Shipping</span>
@@ -467,7 +470,7 @@ export default function CheckoutPage() {
             <div className="mt-6 border-t pt-6">
               <div className="flex justify-between text-lg font-medium">
                 <span>Total</span>
-                <span>{formatPrice(total)}</span>
+                <span>{formatPrice(total, currency)}</span>
               </div>
             </div>
 

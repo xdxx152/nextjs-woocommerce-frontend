@@ -98,6 +98,7 @@ export default async function HomePage() {
             Limited Time
           </p>
           <h2 className="mt-4 font-heading text-3xl font-medium md:text-4xl">
+            {/* Note: This is a static promotional text, not a dynamic price */}
             Free Shipping on Orders Over $100
           </h2>
           <p className="mt-4 text-gray-400">
