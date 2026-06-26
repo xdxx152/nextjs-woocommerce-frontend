@@ -23,8 +23,8 @@ const syne = Syne({
 
 export const metadata: Metadata = {
   title: {
-    default: "STORE | Modern Fashion",
-    template: "%s | STORE",
+    default: "NovaFabric — Premium Apparel, Redefined",
+    template: "NovaFabric — %s",
   },
   description: "Discover the latest fashion trends. Shop new arrivals in women's and men's clothing, accessories, and more.",
   keywords: ["fashion", "clothing", "accessories", "online store", "ecommerce"],
