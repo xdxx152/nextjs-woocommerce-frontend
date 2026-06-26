@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     default: "NovaFabric — Premium Apparel, Redefined",
     template: "NovaFabric — %s",
   },
-  description: "Discover the latest fashion trends. Shop new arrivals in women's and men's clothing, accessories, and more.",
+  description: "Discover the latest fashion trends. Shop new arrivals in men's clothing, accessories, and more.",
   keywords: ["fashion", "clothing", "accessories", "online store", "ecommerce"],
-  authors: [{ name: "STORE" }],
+  authors: [{ name: "NovaFabric" }],
   openGraph: {
     type: "website",
     locale: "en_US",

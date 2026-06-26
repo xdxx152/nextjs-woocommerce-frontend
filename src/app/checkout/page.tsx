@@ -689,6 +689,20 @@ export default function CheckoutPage() {
                 }}
               />
 
+              {/* PayPal Privacy Notice */}
+              <p className="text-xs text-gray-500 text-center leading-relaxed">
+                By paying with your card, you acknowledge that your data will be subject to PayPal's{' '}
+                <a
+                  href="https://www.paypal.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-gray-700"
+                >
+                  Privacy Statement
+                </a>
+                , which can be found at PayPal.com.
+              </p>
+
               {/* Back to checkout link */}
               <button
                 type="button"
