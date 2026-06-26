@@ -63,16 +63,16 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-white">
       {/* Top Bar - Logo centered with hamburger and icons */}
       <div className="border-b border-gray-100">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
+        <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-3 sm:px-4 lg:px-8">
           {/* Left - Hamburger Menu */}
           <button
             type="button"
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
-            className="flex items-center"
+            className="flex items-center shrink-0"
           >
             <svg
-              className="h-6 w-6"
+              className="h-5 w-5 sm:h-6 sm:w-6"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth="1.5"
@@ -87,12 +87,12 @@ export function Header() {
           </button>
 
           {/* Center - Logo */}
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2 font-heading text-2xl font-bold tracking-tight">
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 font-heading text-lg sm:text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap">
             Nova Frabic
           </Link>
 
           {/* Right - Currency, Search & Cart */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 sm:gap-4 shrink-0">
             {/* Currency Selector */}
             <CurrencySelector />
 
@@ -103,8 +103,9 @@ export function Header() {
               type="button"
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               aria-label="Search"
+              className="p-1"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
             </button>
@@ -113,14 +114,14 @@ export function Header() {
             <button
               type="button"
               onClick={openCart}
-              className="relative"
+              className="relative p-1"
               aria-label="Open cart"
             >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
               </svg>
               {itemCount > 0 && (
-                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-black text-[10px] text-white">
+                <span className="absolute -right-1 -top-1 sm:-right-2 sm:-top-2 flex h-3.5 w-3.5 sm:h-4 sm:w-4 items-center justify-center rounded-full bg-black text-[9px] sm:text-[10px] text-white">
                   {itemCount}
                 </span>
               )}

@@ -38,7 +38,8 @@ export function CurrencySelector() {
         className="flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-black transition-colors"
         aria-label="Select currency"
       >
-        <span>{currentOption.symbol} {currentOption.code}</span>
+        <span className="hidden sm:inline">{currentOption.symbol} {currentOption.code}</span>
+        <span className="sm:hidden">{currentOption.symbol}</span>
         <svg
           className={cn('h-3 w-3 transition-transform', isOpen && 'rotate-180')}
           fill="none"
