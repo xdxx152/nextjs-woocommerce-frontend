@@ -5,6 +5,7 @@ import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { OrderStatusBanner } from '@/components/checkout/order-status-banner';
 import { StripePollerWrapper } from '@/components/checkout/stripe-poller-wrapper';
+import { BankTransferInstructions } from '@/components/checkout/bank-transfer-instructions';
 import type { SupportedCurrency } from '@/lib/currency';
 
 interface OrderConfirmationPageProps {
@@ -31,6 +32,9 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
   const isPaid = !!order.date_paid || order.status === 'processing' || order.status === 'completed';
   const isPending = order.status === 'pending';
   const isStripePayment = payment === 'stripe';
+  const isBACSPayment = order.payment_method === 'bacs';
+  const isOnHold = order.status === 'on-hold';
+  const isWaitingForPayment = isPending || isOnHold;
   const orderCurrency = (order.currency || 'USD') as SupportedCurrency;
 
   return (
@@ -46,6 +50,20 @@ export default async function OrderConfirmationPage({ params, searchParams }: Or
       {isPending && isStripePayment && (
         <div className="mt-4">
           <StripePollerWrapper orderId={order.id} />
+        </div>
+      )}
+
+      {/* BACS Bank Transfer Instructions */}
+      {isBACSPayment && isWaitingForPayment && (
+        <div className="mt-6">
+          <BankTransferInstructions
+            order={{
+              id: order.id,
+              number: order.number,
+              total: order.total,
+              currency: order.currency,
+            }}
+          />
         </div>
       )}
 

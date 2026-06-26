@@ -288,10 +288,68 @@ export interface JWTValidateResponse {
   };
 }
 
+// BACS Bank Transfer Types
+
+export interface BACSBankAccount {
+  country: string;       // 'GB' | 'DE' | 'US'
+  currency: string;      // 'GBP' | 'EUR' | 'USD'
+  accountName: string;
+  accountNumber?: string;
+  sortCode?: string;       // 英国 Sort Code
+  routingNumber?: string;  // 美国 Routing Number
+  iban?: string;           // 德国/国际 IBAN
+  swift?: string;          // SWIFT/BIC
+  bankName: string;
+  instructions?: string;   // 转账说明文案
+}
+
 export interface JWTErrorResponse {
   code: string;
   message: string;
   data: {
     status: number;
   };
+}
+
+// Shipping Rate Types
+export interface ShippingRate {
+  method_id: string;
+  method_title: string;
+  total: string;
+  currency: string;
+}
+
+export interface ShippingRatesRequest {
+  items: Array<{
+    product_id: number;
+    variation_id?: number;
+    quantity: number;
+  }>;
+  billing: {
+    first_name: string;
+    last_name: string;
+    address_1: string;
+    address_2?: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+  };
+  shipping?: {
+    first_name: string;
+    last_name: string;
+    address_1: string;
+    address_2?: string;
+    city: string;
+    state: string;
+    postcode: string;
+    country: string;
+  };
+}
+
+export interface ShippingRatesResponse {
+  success: boolean;
+  shipping_rates: ShippingRate[];
+  shipping_total: string;
+  error?: string;
 }

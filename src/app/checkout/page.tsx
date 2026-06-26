@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PaymentMethodSelector, type PaymentMethod } from '@/components/checkout/payment-method-selector';
 import { PayPalButton, type CheckoutFormData } from '@/components/checkout/paypal-button';
+import type { ShippingRate, ShippingRatesResponse } from '@/types/woocommerce';
 
 const checkoutSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -66,6 +67,13 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [checkoutData, setCheckoutData] = useState<CheckoutFormData | null>(null);
+  
+  // Shipping state
+  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
+  const [shippingTotal, setShippingTotal] = useState<string>('0.00');
+  const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
+  const shippingFetchIdRef = useRef(0);
 
   const {
     register,
@@ -87,6 +95,18 @@ export default function CheckoutPage() {
   const shippingSameAsBilling = watch('shippingSameAsBilling');
   const createAccount = watch('createAccount');
   const paymentMethod = watch('paymentMethod');
+  
+  // Watch address fields for shipping calculation
+  const watchedAddress1 = watch('address1');
+  const watchedCity = watch('city');
+  const watchedState = watch('state');
+  const watchedPostcode = watch('postcode');
+  const watchedCountry = watch('country');
+  const watchedShippingAddress1 = watch('shippingAddress1');
+  const watchedShippingCity = watch('shippingCity');
+  const watchedShippingState = watch('shippingState');
+  const watchedShippingPostcode = watch('shippingPostcode');
+  const watchedShippingCountry = watch('shippingCountry');
 
   // Whether the PayPal button view is active (checkoutData set + payment is PayPal)
   const showPaypalView = checkoutData !== null && paymentMethod === 'paypal';
@@ -109,6 +129,110 @@ export default function CheckoutPage() {
       setValue('lastName', user.lastName || '');
     }
   }, [isAuthenticated, user, setValue]);
+
+  // Fetch shipping rates when address changes
+  const fetchShippingRates = useCallback(async () => {
+    // Only fetch if we have required billing address fields
+    if (!watchedAddress1 || !watchedCity || !watchedPostcode || !watchedCountry || items.length === 0) {
+      return;
+    }
+
+    const fetchId = ++shippingFetchIdRef.current;
+    setIsLoadingShipping(true);
+    setShippingError(null);
+
+    try {
+      const billingAddress = {
+        first_name: 'temp',
+        last_name: 'temp',
+        address_1: watchedAddress1,
+        city: watchedCity,
+        state: watchedState || '',
+        postcode: watchedPostcode,
+        country: watchedCountry,
+      };
+
+      const shippingAddress = shippingSameAsBilling
+        ? billingAddress
+        : {
+            first_name: 'temp',
+            last_name: 'temp',
+            address_1: watchedShippingAddress1 || watchedAddress1,
+            city: watchedShippingCity || watchedCity,
+            state: watchedShippingState || watchedState || '',
+            postcode: watchedShippingPostcode || watchedPostcode,
+            country: watchedShippingCountry || watchedCountry,
+          };
+
+      const response = await fetch('/api/shipping/rates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            product_id: item.productId,
+            variation_id: item.variationId || 0,
+            quantity: item.quantity,
+          })),
+          billing: billingAddress,
+          shipping: shippingAddress,
+        }),
+      });
+
+      // Check if this response is still relevant
+      if (fetchId !== shippingFetchIdRef.current) {
+        return;
+      }
+
+      const data: ShippingRatesResponse = await response.json();
+      console.log('Shipping rates response:', JSON.stringify(data, null, 2));
+
+      if (data.success) {
+        console.log('Setting shipping rates:', data.shipping_rates);
+        console.log('Setting shipping total:', data.shipping_total);
+        setShippingRates(data.shipping_rates);
+        setShippingTotal(data.shipping_total);
+        if (data.error) {
+          console.log('Shipping warning:', data.error);
+          setShippingError(data.error);
+        }
+      } else {
+        console.error('Shipping calculation failed:', data.error);
+        setShippingError(data.error || 'Unable to calculate shipping');
+      }
+    } catch (err) {
+      if (fetchId !== shippingFetchIdRef.current) {
+        return;
+      }
+      console.error('Failed to fetch shipping rates:', err);
+      setShippingError('Unable to calculate shipping');
+    } finally {
+      if (fetchId === shippingFetchIdRef.current) {
+        setIsLoadingShipping(false);
+      }
+    }
+  }, [
+    watchedAddress1,
+    watchedCity,
+    watchedState,
+    watchedPostcode,
+    watchedCountry,
+    watchedShippingAddress1,
+    watchedShippingCity,
+    watchedShippingState,
+    watchedShippingPostcode,
+    watchedShippingCountry,
+    shippingSameAsBilling,
+    items,
+  ]);
+
+  useEffect(() => {
+    // Debounce shipping calculation
+    const timer = setTimeout(() => {
+      fetchShippingRates();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [fetchShippingRates]);
 
   if (!mounted) {
     return (
@@ -142,11 +266,22 @@ export default function CheckoutPage() {
     );
   }
 
+  // Calculate grand total with shipping
+  const shippingTotalNumber = parseFloat(shippingTotal) || 0;
+  const grandTotal = total + shippingTotalNumber;
+  
+  // Debug logging for shipping calculation
+  console.log('Cart total:', total);
+  console.log('Shipping total string:', shippingTotal);
+  console.log('Shipping total number:', shippingTotalNumber);
+  console.log('Grand total:', grandTotal);
+  console.log('Shipping rates available:', shippingRates.length);
+
   const getSubmitButtonText = () => {
     if (isSubmitting) return 'Processing...';
     switch (paymentMethod) {
       case 'stripe':
-        return `Pay ${formatPrice(total, currency)}`;
+        return `Pay ${formatPrice(grandTotal, currency)}`;
       case 'paypal':
         return 'Continue to Payment';
       default:
@@ -203,6 +338,11 @@ export default function CheckoutPage() {
             billing: billingAddress,
             shipping: shippingAddress,
             line_items: lineItems,
+            shipping_lines: shippingRates.length > 0 ? [{
+              method_id: shippingRates[0].method_id,
+              method_title: shippingRates[0].method_title,
+              total: shippingRates[0].total,
+            }] : undefined,
             customer_note: data.orderNotes || '',
             create_account: data.createAccount,
             password: data.password,
@@ -244,6 +384,11 @@ export default function CheckoutPage() {
           billing: billingAddress,
           shipping: shippingAddress,
           line_items: lineItems,
+          shipping_lines: shippingRates.length > 0 ? [{
+            method_id: shippingRates[0].method_id,
+            method_title: shippingRates[0].method_title,
+            total: shippingRates[0].total,
+          }] : undefined,
           customer_note: data.orderNotes || '',
           create_account: data.createAccount,
           password: data.password,
@@ -265,6 +410,11 @@ export default function CheckoutPage() {
             billing: billingAddress,
             shipping: shippingAddress,
             line_items: lineItems,
+            shipping_lines: shippingRates.length > 0 ? [{
+              method_id: shippingRates[0].method_id,
+              method_title: shippingRates[0].method_title,
+              total: shippingRates[0].total,
+            }] : undefined,
             customer_note: data.orderNotes || '',
             create_account: data.createAccount,
             password: data.password,
@@ -515,7 +665,7 @@ export default function CheckoutPage() {
                 </div>
                 <p className="mt-2 text-sm text-gray-600">
                   Complete your payment of{' '}
-                  <span className="font-medium">{formatPrice(total, currency)}</span>{' '}
+                  <span className="font-medium">{formatPrice(grandTotal, currency)}</span>{' '}
                   using PayPal.
                 </p>
               </div>
@@ -620,18 +770,20 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Shipping</span>
-                <span>Calculated at next step</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Tax</span>
-                <span>Calculated at next step</span>
+                {isLoadingShipping ? (
+                  <span className="text-gray-400">Calculating...</span>
+                ) : shippingError ? (
+                  <span className="text-gray-400">Calculated at next step</span>
+                ) : (
+                  <span>{formatPrice(shippingTotalNumber, currency)}</span>
+                )}
               </div>
             </div>
 
             <div className="mt-6 border-t pt-6">
               <div className="flex justify-between text-lg font-medium">
                 <span>Total</span>
-                <span>{formatPrice(total, currency)}</span>
+                <span>{formatPrice(grandTotal, currency)}</span>
               </div>
             </div>
 

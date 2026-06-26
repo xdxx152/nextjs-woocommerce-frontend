@@ -10,6 +10,11 @@ interface OrderRequestBody {
     variation_id?: number;
     quantity: number;
   }>;
+  shipping_lines?: Array<{
+    method_id: string;
+    method_title: string;
+    total: string;
+  }>;
   customer_note?: string;
   create_account?: boolean;
   password?: string;
@@ -73,6 +78,7 @@ export async function POST(request: Request) {
       billing: body.billing,
       shipping: body.shipping,
       line_items: body.line_items,
+      shipping_lines: body.shipping_lines,
       customer_id: customerId || undefined,
       customer_note: body.customer_note,
     }, params);

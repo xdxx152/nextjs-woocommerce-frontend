@@ -37,6 +37,11 @@ export interface CheckoutFormData {
     variation_id: number
     quantity: number
   }>
+  shipping_lines?: Array<{
+    method_id: string
+    method_title: string
+    total: string
+  }>
   customer_note: string
   payment_method: string
   payment_method_title: string
