@@ -202,3 +202,35 @@ export function buildQueryString(params: Record<string, string | number | boolea
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : '';
 }
+
+// ============================================
+// Cookie helpers
+// ============================================
+
+/**
+ * Read a cookie value by name from document.cookie
+ * Returns null if cookie doesn't exist or if called server-side
+ */
+export function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Set a cookie with the given options
+ * Safe to call server-side (no-op)
+ */
+export function setCookie(
+  name: string,
+  value: string,
+  options?: { maxAge?: number; path?: string; secure?: boolean; sameSite?: 'lax' | 'strict' | 'none' }
+): void {
+  if (typeof document === 'undefined') return;
+  const parts = [`${name}=${encodeURIComponent(value)}`];
+  if (options?.maxAge) parts.push(`max-age=${options.maxAge}`);
+  if (options?.path) parts.push(`path=${options.path}`);
+  if (options?.secure) parts.push('secure');
+  if (options?.sameSite) parts.push(`SameSite=${options.sameSite}`);
+  document.cookie = parts.join('; ');
+}

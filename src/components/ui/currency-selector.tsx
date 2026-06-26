@@ -15,7 +15,17 @@ const currencyOptions: { code: SupportedCurrency; label: string; symbol: string 
 export function CurrencySelector() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { currency, setCurrency } = useCurrencyStore();
+  const { currency, setCurrencyManually } = useCurrencyStore();
+
+  const handleCurrencyChange = (code: SupportedCurrency) => {
+    // Update store — marks isManuallySet=true so auto-detection won't override
+    setCurrencyManually(code);
+
+    // Set cookie to tell Edge Proxy not to auto-detect on subsequent requests
+    document.cookie = `currency_manual=true; path=/; max-age=${60 * 60 * 24 * 365}`;
+
+    setIsOpen(false);
+  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -64,10 +74,7 @@ export function CurrencySelector() {
               <button
                 key={option.code}
                 type="button"
-                onClick={() => {
-                  setCurrency(option.code);
-                  setIsOpen(false);
-                }}
+                onClick={() => handleCurrencyChange(option.code)}
                 className={cn(
                   'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors hover:bg-gray-50',
                   currency === option.code ? 'bg-gray-50 font-medium text-black' : 'text-gray-700'

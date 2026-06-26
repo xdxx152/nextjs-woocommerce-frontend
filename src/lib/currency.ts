@@ -47,41 +47,99 @@ export function countryToCurrency(countryCode: string): SupportedCurrency {
 }
 
 // ============================================
-// GeoIP detection
+// Shared constants for cookie-based detection
+// ============================================
+
+/** Cookie name used by middleware to pass detected currency to client */
+export const COOKIE_NAME = 'currency_detected';
+
+/** Valid currency codes (used for cookie value validation) */
+export const VALID_CURRENCIES: SupportedCurrency[] = ['USD', 'EUR', 'GBP'];
+
+// ============================================
+// GeoIP detection — server-side (Middleware)
 // ============================================
 
 /**
- * Detect user country from Cloudflare cf-ipcountry header
- * This is available when the site is behind Cloudflare CDN
+ * Detect currency from Vercel Edge Network or Cloudflare headers.
+ *
+ * Priority:
+ * 1. x-vercel-ip-country — injected by Vercel Edge (production, preview)
+ * 2. cf-ipcountry — injected by Cloudflare CDN
+ *
+ * Returns the detected currency or null if neither header is available.
+ */
+export function detectCurrencyFromVercelHeaders(
+  headers: Headers
+): SupportedCurrency | null {
+  const country =
+    headers.get('x-vercel-ip-country') ||
+    headers.get('cf-ipcountry');
+
+  if (country && country !== 'XX' && country !== '??') {
+    return countryToCurrency(country);
+  }
+
+  return null;
+}
+
+/**
+ * @deprecated Use detectCurrencyFromVercelHeaders() instead,
+ * which supports both x-vercel-ip-country and cf-ipcountry headers.
  */
 export function detectCountryFromHeaders(
   headers: Headers
 ): SupportedCurrency | null {
-  const country = headers.get('cf-ipcountry');
-  if (country && country !== 'XX') {
-    return countryToCurrency(country);
+  return detectCurrencyFromVercelHeaders(headers);
+}
+
+// ============================================
+// GeoIP detection — client-side fallback
+// ============================================
+
+/**
+ * Read the currency cookie set by Edge Proxy (Middleware).
+ * This is the client-side counterpart to proxy.ts, used by CurrencyProvider.
+ *
+ * Returns null if:
+ * - Called server-side (typeof document === 'undefined')
+ * - Cookie doesn't exist
+ * - Cookie value is not a valid supported currency
+ */
+export function getCurrencyFromCookie(): SupportedCurrency | null {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAME}=([^;]*)`));
+  if (match) {
+    const currency = match[1] as SupportedCurrency;
+    if (VALID_CURRENCIES.includes(currency)) {
+      return currency;
+    }
   }
   return null;
 }
 
 /**
- * Detect user country from a free client-side IP API
- * Returns the currency code or null if detection fails
+ * Detect user country from a free client-side IP API.
+ *
+ * Uses ipinfo.io (free tier: 50,000 requests/day, no API key required)
+ * as a client-side fallback when server-side detection (Middleware) didn't
+ * set a currency cookie.
  */
-export async function detectCurrencyFromIP(): Promise<SupportedCurrency> {
+export async function detectCurrencyFromIP(): Promise<SupportedCurrency | null> {
   try {
-    // ipapi.co is free for non-commercial use (1000 requests/day)
-    const response = await fetch('https://ipapi.co/json/', {
+    const response = await fetch('https://ipinfo.io/json/', {
       signal: AbortSignal.timeout(3000), // 3 second timeout
     });
 
-    if (!response.ok) return DEFAULT_CURRENCY;
+    if (!response.ok) return null;
 
     const data = await response.json();
-    return countryToCurrency(data.country_code || '');
+    const currency = countryToCurrency(data.country || '');
+    return currency;
   } catch {
-    // Fallback to default currency on any error
-    return DEFAULT_CURRENCY;
+    // Return null on failure so caller can distinguish
+    // "successfully detected USD" from "API call failed"
+    return null;
   }
 }
 
