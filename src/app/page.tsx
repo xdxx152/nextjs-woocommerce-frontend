@@ -19,9 +19,13 @@ export default async function HomePage() {
     console.error('Failed to fetch data:', error);
   }
 
-  // Filter and order categories based on FEATURED_CATEGORY_SLUGS
-  // 替换硬编码的 Slug
-  const allCategories = await wooCommerce.categories.list();
+  // Fetch categories with error handling
+  let allCategories: Awaited<ReturnType<typeof wooCommerce.categories.list>> = [];
+  try {
+    allCategories = await wooCommerce.categories.list();
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+  }
   const featuredCategories = allCategories.filter(cat => cat.count > 0); // 显示所有有商品的分类
 
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, toStripeAmount, getSiteUrl } from '@/lib/stripe'
+import { getStripe, toStripeAmount, getSiteUrl } from '@/lib/stripe'
 import { wooCommerce } from '@/lib/woocommerce'
 
 /**
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
           ]
 
     // 7. Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode: 'payment',
       line_items: finalLineItems,
       success_url: `${getSiteUrl()}/order-confirmation/${orderId}?payment=stripe&status=success&session_id={CHECKOUT_SESSION_ID}`,

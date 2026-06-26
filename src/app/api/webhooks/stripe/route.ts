@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { wooCommerce } from '@/lib/woocommerce'
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET!
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   // 3. Verify signature
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET)
+    event = getStripe().webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET)
   } catch (err) {
     console.error('Stripe webhook signature verification failed:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
