@@ -8,12 +8,11 @@ export const BACS_ACCOUNTS: BACSBankAccount[] = [
   {
     country: 'GB',
     currency: 'GBP',
-    accountName: 'NovaFabric Ltd',
-    accountNumber: '12345678',
-    sortCode: '12-34-56',
+    accountName: 'DANG YANG SHI ZHONG XIN DIAN ZI SHANG WU SHANG HANG GE TI GONG SHANG',
+    accountNumber: '01063346',
+    sortCode: '041907',
     bankName: 'Barclays Bank',
-    iban: 'GB29 NWBK 6016 1331 9268 19',
-    swift: 'NWBKGB2L',
+    swift: 'AIRWGB22XXX',
     instructions: 'Please include order number as payment reference. Processing time: 1-3 business days.',
   },
   {
