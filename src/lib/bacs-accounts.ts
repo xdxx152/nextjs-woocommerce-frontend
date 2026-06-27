@@ -11,7 +11,7 @@ export const BACS_ACCOUNTS: BACSBankAccount[] = [
     accountName: 'DANG YANG SHI ZHONG XIN DIAN ZI SHANG WU SHANG HANG GE TI GONG SHANG',
     accountNumber: '01063346',
     sortCode: '041907',
-    bankName: 'Barclays Bank',
+    bankName: 'AIRWALLEX (UK) LIMITED',
     swift: 'AIRWGB22XXX',
     instructions: 'Please include order number as payment reference. Processing time: 1-3 business days.',
   },
