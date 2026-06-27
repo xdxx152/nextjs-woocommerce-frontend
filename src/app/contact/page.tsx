@@ -10,11 +10,11 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 const contactSchema = z.object({
-  name: z.string().min(2, '姓名至少需要2个字符'),
-  email: z.string().email('请输入有效的邮箱地址'),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email address'),
   phone: z.string().optional(),
-  subject: z.string().min(1, '请选择咨询类型'),
-  message: z.string().min(10, '留言至少需要10个字符'),
+  subject: z.string().min(1, 'Please select a subject'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
 });
 
 type ContactFormData = z.infer<typeof contactSchema>;
@@ -61,7 +61,7 @@ export default function ContactPage() {
         setSubmitStatus('error');
       }
     } catch (error) {
-      console.error('表单提交失败:', error);
+      console.error('Form submission failed:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -75,11 +75,11 @@ export default function ContactPage() {
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h1 className="font-heading text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-              联系我们
+              Contact Us
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              无论您有任何问题、建议或合作意向，我们都期待与您取得联系。
-              NovaFabric 团队将尽快为您回复。
+              Whether you have a question, suggestion, or collaboration inquiry, we'd love to
+              hear from you. The NovaFabric team will get back to you promptly.
             </p>
           </div>
         </div>
@@ -93,22 +93,22 @@ export default function ContactPage() {
             <div className="lg:col-span-1">
               <div className="rounded-lg border border-gray-200 bg-white p-8">
                 <h2 className="font-heading text-2xl font-bold text-gray-900">
-                  发送消息
+                  Send Us a Message
                 </h2>
                 <p className="mt-2 text-gray-600">
-                  带 * 的字段为必填项
+                  Fields marked with * are required
                 </p>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Input
-                      label="姓名 *"
-                      placeholder="您的姓名"
+                      label="Name *"
+                      placeholder="Your name"
                       error={errors.name?.message}
                       {...register('name')}
                     />
                     <Input
-                      label="邮箱 *"
+                      label="Email *"
                       type="email"
                       placeholder="your@email.com"
                       error={errors.email?.message}
@@ -118,14 +118,14 @@ export default function ContactPage() {
 
                   <div className="grid gap-6 sm:grid-cols-2">
                     <Input
-                      label="电话（选填）"
+                      label="Phone (optional)"
                       type="tel"
                       placeholder="+86 138 0000 0000"
                       {...register('phone')}
                     />
                     <div className="w-full">
                       <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                        咨询类型 *
+                        Subject *
                       </label>
                       <select
                         className={cn(
@@ -135,13 +135,13 @@ export default function ContactPage() {
                         )}
                         {...register('subject')}
                       >
-                        <option value="">请选择</option>
-                        <option value="product">产品咨询</option>
-                        <option value="order">订单相关</option>
-                        <option value="shipping">配送问题</option>
-                        <option value="return">退换货</option>
-                        <option value="wholesale">批发合作</option>
-                        <option value="other">其他</option>
+                        <option value="">Select a subject</option>
+                        <option value="product">Product Inquiry</option>
+                        <option value="order">Order Related</option>
+                        <option value="shipping">Shipping Issues</option>
+                        <option value="return">Returns & Exchanges</option>
+                        <option value="wholesale">Wholesale Partnerships</option>
+                        <option value="other">Other</option>
                       </select>
                       {errors.subject?.message && (
                         <p className="mt-1.5 text-sm text-red-500">{errors.subject.message}</p>
@@ -151,11 +151,11 @@ export default function ContactPage() {
 
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                      留言内容 *
+                      Message *
                     </label>
                     <textarea
                       rows={5}
-                      placeholder="请输入您想要咨询的内容..."
+                      placeholder="Please describe what you'd like to discuss..."
                       className={cn(
                         'flex w-full border border-gray-300 bg-white px-4 py-3 text-sm transition-colors',
                         'placeholder:text-gray-400',
@@ -171,13 +171,13 @@ export default function ContactPage() {
 
                   {submitStatus === 'success' && (
                     <div className="rounded-md bg-green-50 p-4 text-sm text-green-800">
-                      感谢您的留言！我们会尽快与您取得联系。
+                      Thank you for your message! We will get back to you as soon as possible.
                     </div>
                   )}
 
                   {submitStatus === 'error' && (
                     <div className="rounded-md bg-red-50 p-4 text-sm text-red-800">
-                      提交失败，请稍后重试或直接通过邮件联系我们。
+                      Submission failed. Please try again later or contact us directly via email.
                     </div>
                   )}
 
@@ -187,7 +187,7 @@ export default function ContactPage() {
                     isLoading={isSubmitting}
                     className="w-full"
                   >
-                    发送消息
+                    Send Message
                   </Button>
                 </form>
               </div>
@@ -199,31 +199,31 @@ export default function ContactPage() {
                 {/* Contact Cards */}
                 <div className="rounded-lg border border-gray-200 bg-white p-8">
                   <h3 className="font-heading text-lg font-bold text-gray-900">
-                    客服邮箱
+                    Customer Support
                   </h3>
                   <p className="mt-2 text-gray-600">
                     support@novafabric.com
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
-                    工作日 24 小时内回复
+                    Replies within 24 hours on business days
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-white p-8">
                   <h3 className="font-heading text-lg font-bold text-gray-900">
-                    批发合作
+                    Wholesale Inquiries
                   </h3>
                   <p className="mt-2 text-gray-600">
                     wholesale@novafabric.com
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
-                    寻求商业合作？欢迎联系我们
+                    Looking for business partnerships? We'd love to hear from you.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-white p-8">
                   <h3 className="font-heading text-lg font-bold text-gray-900">
-                    关注我们
+                    Follow Us
                   </h3>
                   <div className="mt-4 flex gap-4">
                     <a href="#" className="text-gray-400 hover:text-gray-600">
@@ -250,16 +250,17 @@ export default function ContactPage() {
                 {/* FAQ Link */}
                 <div className="rounded-lg border border-gray-200 bg-gray-50 p-8">
                   <h3 className="font-heading text-lg font-bold text-gray-900">
-                    常见问题
+                    Frequently Asked Questions
                   </h3>
                   <p className="mt-2 text-gray-600">
-                    在联系客服之前，您可以先查看我们的常见问题页面，也许能找到您需要的答案。
+                    Before reaching out, check our FAQ page — you might find the answer you're
+                    looking for.
                   </p>
                   <Link
                     href="/faq"
                     className="mt-4 inline-block text-sm font-medium text-black underline underline-offset-4 hover:no-underline"
                   >
-                    查看 FAQ →
+                    View FAQ &rarr;
                   </Link>
                 </div>
               </div>
