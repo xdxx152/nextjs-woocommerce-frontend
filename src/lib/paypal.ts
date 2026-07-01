@@ -46,6 +46,45 @@ interface PayPalTokenResponse {
   scope: string
 }
 
+export interface PayPalOrderItem {
+  /** 商品名称 */
+  name: string
+  /** 商品描述（可选） */
+  description?: string
+  /** SKU */
+  sku?: string
+  /** 单价 */
+  unit_amount: {
+    currency_code: string
+    value: string
+  }
+  /** 税费（可选） */
+  tax?: {
+    currency_code: string
+    value: string
+  }
+  /** 数量 */
+  quantity: string
+  /** 商品类别：PHYSICAL_GOODS | DIGITAL_GOODS */
+  category?: 'PHYSICAL_GOODS' | 'DIGITAL_GOODS'
+}
+
+export interface PayPalShippingAddress {
+  /** 收货人姓名 */
+  name: {
+    full_name: string
+  }
+  /** 物流地址 */
+  address: {
+    address_line_1: string
+    address_line_2?: string
+    admin_area_2: string   // 城市
+    admin_area_1: string   // 州/省
+    postal_code: string
+    country_code: string
+  }
+}
+
 /** 创建 PayPal 订单的参数 */
 export interface CreatePayPalOrderParams {
   /** WooCommerce 订单 ID（写入 custom_id 用于对账） */
@@ -56,6 +95,14 @@ export interface CreatePayPalOrderParams {
   currency: string
   /** WC 订单号（用于描述） */
   number: string
+  /** 商品明细数组（强烈推荐，用于 PayPal 交易记录和 Seller Protection） */
+  items?: PayPalOrderItem[]
+  /** 物流地址（实体商品必传，用于 PayPal Seller Protection） */
+  shipping?: PayPalShippingAddress
+  /** 运费金额（可选，建议传入以展示完整 breakdown） */
+  shippingAmount?: string
+  /** 税费总金额（可选，建议传入以展示完整 breakdown） */
+  taxAmount?: string
 }
 
 /** 创建 PayPal 订单的返回结果 */
@@ -197,9 +244,69 @@ export function clearPayPalTokenCache(): void {
 export async function createPayPalOrder(
   params: CreatePayPalOrderParams
 ): Promise<CreatePayPalOrderResult> {
-  const { wcOrderId, total, currency, number } = params
+  const { wcOrderId, total, currency, number, items, shipping, shippingAmount, taxAmount } = params
 
   const accessToken = await getPayPalAccessToken()
+
+  // 构建 amount 对象，有 items 时附带 breakdown
+  const amount: Record<string, unknown> = {
+    currency_code: currency.toUpperCase(),
+    value: total,
+  }
+
+  if (items && items.length > 0) {
+    // 计算商品小计总和（items 中 unit_amount * quantity 的总和）
+    const itemTotal = items.reduce(
+      (sum, item) => sum + parseFloat(item.unit_amount.value) * parseInt(item.quantity, 10),
+      0
+    ).toFixed(2)
+
+    const breakdown: Record<string, { currency_code: string; value: string }> = {
+      item_total: {
+        currency_code: currency.toUpperCase(),
+        value: itemTotal,
+      },
+    }
+
+    if (shippingAmount) {
+      breakdown.shipping = {
+        currency_code: currency.toUpperCase(),
+        value: shippingAmount,
+      }
+    }
+
+    if (taxAmount) {
+      breakdown.tax_total = {
+        currency_code: currency.toUpperCase(),
+        value: taxAmount,
+      }
+    }
+
+    amount.breakdown = breakdown
+  }
+
+  // 构建 purchase_unit
+  const purchaseUnit: Record<string, unknown> = {
+    amount,
+    custom_id: String(wcOrderId),
+    description: `Order #${number}`,
+    soft_descriptor: 'NOVAFABRIC',
+  }
+
+  // 有 items 时传入
+  if (items && items.length > 0) {
+    purchaseUnit.items = items
+  }
+
+  // 有物流地址时传入
+  if (shipping) {
+    purchaseUnit.shipping = shipping
+  }
+
+  // 确定 shipping_preference
+  // 如果传了物流地址，使用 SET_FROM_PROVIDER 告知 PayPal 地址由商家提供
+  // 否则使用 NO_SHIPPING（虚拟商品或地址已由 WC 收集）
+  const shippingPreference = shipping ? 'SET_FROM_PROVIDER' : 'NO_SHIPPING'
 
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: 'POST',
@@ -212,20 +319,11 @@ export async function createPayPalOrder(
     },
     body: JSON.stringify({
       intent: 'CAPTURE',
-      purchase_units: [
-        {
-          amount: {
-            currency_code: currency.toUpperCase(),
-            value: total,
-          },
-          custom_id: String(wcOrderId),
-          description: `Order #${number}`,
-          soft_descriptor: 'NOVAFABRIC',
-        },
-      ],
+      purchase_units: [purchaseUnit],
       application_context: {
-        // 物流地址已在 WC 订单采集，PayPal 不重复收集
-        shipping_preference: 'NO_SHIPPING',
+        // 如果传入物流地址，使用 SET_FROM_PROVIDER（商家自行传递物流地址）
+        // 否则使用 NO_SHIPPING（虚拟商品或地址已在 WC 采集）
+        shipping_preference: shippingPreference,
         user_action: 'PAY_NOW',
       },
     }),
