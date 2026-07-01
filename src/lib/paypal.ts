@@ -304,9 +304,9 @@ export async function createPayPalOrder(
   }
 
   // 确定 shipping_preference
-  // 如果传了物流地址，使用 SET_FROM_PROVIDER 告知 PayPal 地址由商家提供
-  // 否则使用 NO_SHIPPING（虚拟商品或地址已由 WC 收集）
-  const shippingPreference = shipping ? 'SET_FROM_PROVIDER' : 'NO_SHIPPING'
+  // 如果传了物流地址，使用 SET_PROVIDED_ADDRESS 告知 PayPal 地址已由商家在 purchase_units 中提供
+  // 否则使用 NO_SHIPPING（虚拟商品或无需物流）
+  const shippingPreference = shipping ? 'SET_PROVIDED_ADDRESS' : 'NO_SHIPPING'
 
   const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
     method: 'POST',
@@ -321,8 +321,7 @@ export async function createPayPalOrder(
       intent: 'CAPTURE',
       purchase_units: [purchaseUnit],
       application_context: {
-        // 如果传入物流地址，使用 SET_FROM_PROVIDER（商家自行传递物流地址）
-        // 否则使用 NO_SHIPPING（虚拟商品或地址已在 WC 采集）
+        // 地址已在 purchase_units[].shipping 中由商家提供
         shipping_preference: shippingPreference,
         user_action: 'PAY_NOW',
       },
