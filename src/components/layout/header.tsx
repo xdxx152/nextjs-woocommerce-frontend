@@ -88,7 +88,7 @@ export function Header() {
 
           {/* Center - Logo */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2 font-heading text-lg sm:text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap">
-            Nova Frabic
+            Nova Fabric
           </Link>
 
           {/* Right - Currency, Search & Cart */}
@@ -177,7 +177,7 @@ export function Header() {
               className="fixed inset-y-0 left-0 z-50 w-full max-w-sm bg-white shadow-xl"
             >
               <div className="flex h-16 items-center justify-between border-b px-6">
-                <span className="font-heading text-lg font-bold">Nova Frabic</span>
+                <span className="font-heading text-lg font-bold">Nova Fabric</span>
                 <button type="button" onClick={closeMobileMenu} aria-label="Close menu">
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
